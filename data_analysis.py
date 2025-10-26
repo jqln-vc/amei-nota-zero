@@ -1,14 +1,11 @@
 import pandas as pd
 
-
 def gerar_resumo(df: pd.DataFrame) -> str:
     # Simulação de resumo baseado em conteúdo textual
     if "Texto" not in df.columns:
         return "⚠️ Coluna 'Texto' não encontrada no arquivo."
 
-
     textos = " ".join(df["Texto"].dropna().astype(str)).lower()
-
 
     if "atendimento" in textos and "tempo" in textos:
         return (
