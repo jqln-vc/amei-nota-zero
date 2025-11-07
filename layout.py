@@ -2,12 +2,12 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-from estilos.visual import aplicar_estilos, obter_paleta, mostrar_aviso, cor_texto_tema
-from funcionalidades.carregamento import carregar_arquivo, exibir_dados
-from funcionalidades.resumo import gerar_resumo
-from funcionalidades.visualizacao import gerar_grafico_barra
-from componentes.acessibilidade import configurar_acessibilidade
-from componentes.navegacao import configurar_navegacao
+from visual import aplicar_estilos, obter_paleta, cor_texto_tema
+from carregamento import carregar_arquivo, exibir_dados, gerar_relatorio, conectar_banco, salvar_avaliacoes, carregar_avaliacoes 
+from visualizacao import gerar_grafico_barra
+from acessibilidade import configurar_acessibilidade
+from navegacao import configurar_navegacao
+import nlp
 
 def mostrar_erro_personalizado(modo_tema: str, mensagem: str):
     cor = cor_texto_tema(modo_tema)
@@ -22,6 +22,7 @@ def construir_interface():
     st.set_page_config(page_title="Amei, nota zero", layout="wide")
 
     modo_tema, tamanho_fonte = configurar_acessibilidade()
+    st.session_state["modo_tema"] = modo_tema
     aplicar_estilos(tamanho_fonte, modo_tema)
     cor = cor_texto_tema(modo_tema)
 
@@ -29,8 +30,11 @@ def construir_interface():
     st.markdown(f"<p style='color:{cor}; font-size:120%;'>Automatização de análise de avaliações textuais em negócios online</p>", unsafe_allow_html=True)
 
     pagina = configurar_navegacao()
-    categorias = ["Elogios", "Sugestões", "Críticas"]
+    categorias = ["positive", "neutral", "negative"]
     cores = [obter_paleta(modo_tema)[c] for c in categorias]
+    
+    # Osbter o objeto de conexão cacheado
+    conn = conectar_banco()
 
     if pagina == "Início":
         st.header("Que bom ter você por aqui!")
@@ -47,95 +51,80 @@ def construir_interface():
             </ul>
             <p style='color:{cor}; font-size:120%;'>Você pode enviar arquivos nos formatos CSV, Excel, TXT ou JSON.</p>
         """, unsafe_allow_html=True)
-
+        
         st.markdown('<h3 class="titulo-upload">📁 Envie um arquivo com avaliações</h3>', unsafe_allow_html=True)
         st.markdown('<div class="upload-box">', unsafe_allow_html=True)
         arquivo = st.file_uploader("📁 Envie um arquivo com avaliações", type=["csv", "xlsx", "txt", "json"], label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
+        
+        if st.button("📊 Carregar avaliações do banco de dados"):
+                    exibir_dados(carregar_avaliacoes(conn))
 
         if arquivo:
-            df = carregar_arquivo(arquivo)
-            if df is not None:
-                exibir_dados(df)
+            df_raw = carregar_arquivo(arquivo)
+            df, all_reviews = nlp.extrair_sentimento(df_raw[1:])
+            if not df.empty and all_reviews is not None:
+                extracted_info = nlp.processar_reviews(all_reviews)
+                st.session_state["resumo"] = extracted_info["summary"]
+                st.session_state["topicos"] = extracted_info["key_topics"]
+                st.session_state["recomendacao"] = extracted_info["advice"]
+                st.session_state["empresa"] = df["name"].iloc[0]
+                st.session_state["df_avaliacoes"] = df
+            
+            if st.button("💾 Salvar no banco de dados"):
+                salvar_avaliacoes(df, conn)
+            exibir_dados(df)
+                
+            
+                
+                
 
     elif pagina == "Análise de Avaliações":
-        st.header("📊 Análise de Avaliações")
-        st.subheader("Visualização de Dados")
-
+        empresa = st.session_state.get("empresa", "Sua Empresa")
+        resumo = st.session_state.get("resumo", "")
+        topicos = st.session_state.get("topicos", [])
+        recomendacao = st.session_state.get("recomendacao", "")
+        st.header(f"📊 Análise de Avaliações de {empresa}")
+        
+        st.subheader("Gráfico de Análise de Sentimento")
         if "df_avaliacoes" in st.session_state:
-            df = st.session_state["df_avaliacoes"]
+            df_sent = st.session_state["df_avaliacoes"]["sent_tag"].value_counts().reset_index()
             dados = pd.DataFrame({
-                "Categoria": categorias,
-                "Quantidade": [len(df)//2, len(df)//6, len(df)//3]
-            })
+                    "Categoria": df_sent.iloc[:, 0].tolist(),
+                    "Quantidade": df_sent.iloc[:, 1].tolist()
+                })
         else:
             mostrar_erro_personalizado(modo_tema, "Nenhum arquivo ainda foi enviado. Você está vendo um exemplo com dados fictícios.")
-            dados = pd.DataFrame({
-                "Categoria": categorias,
-                "Quantidade": [60, 10, 30]
-            })
-
+            
         dados["Percentual"] = (dados["Quantidade"] / dados["Quantidade"].sum() * 100).round(1)
-        st.altair_chart(gerar_grafico_barra(dados, "Categoria", categorias, cores, modo_tema), use_container_width=True)
+        grafico_sent = gerar_grafico_barra(dados, "Categoria", categorias, cores, modo_tema)
+        st.altair_chart(grafico_sent, use_container_width=True)
 
         st.subheader("Tópicos Mais Frequentes")
         if "df_avaliacoes" in st.session_state:
-            coluna = next((c for c in df.columns if c.lower() in ["texto", "comentário", "mensagem"]), None)
-            if coluna:
-                palavras = pd.Series(" ".join(df[coluna].astype(str)).lower().split())
-                top = palavras.value_counts().head(10)
-                st.markdown(f"<p style='color:{cor}; font-size:120%;'>Tópicos extraídos das avaliações:</p>", unsafe_allow_html=True)
-                for p in top.index:
-                    st.markdown(f"<p style='color:{cor}; font-size:120%;'>- {p}</p>", unsafe_allow_html=True)
-            else:
-                mostrar_erro_personalizado(modo_tema, "Nenhuma coluna de texto foi encontrada no arquivo enviado.")
-        else:
-            for item in ["atendimento", "preço", "qualidade", "tempo de espera", "ambiente", "profissionalismo"]:
-                st.markdown(f"<p style='color:{cor}; font-size:120%;'>- {item}</p>", unsafe_allow_html=True)
+                for item in topicos:
+                    st.markdown(f"<p style='color:{cor}; font-size:120%;'>- {item}</p>", unsafe_allow_html=True)
 
         st.subheader("Resumo Inteligente")
         if "df_avaliacoes" in st.session_state:
-            resumo = gerar_resumo(df)
             st.markdown(f"<p style='color:{cor}; font-size:120%;'>{resumo}</p>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-                <p style='color:{cor}; font-size:120%;'>
-                “Os clientes elogiam fortemente o atendimento e a qualidade dos serviços, mas há críticas recorrentes sobre o tempo de espera.<br>
-                Recomenda-se otimizar o agendamento para melhorar a experiência geral.”
-                </p>
-            """, unsafe_allow_html=True)
-
-    elif pagina == "Relatório Final":
-        st.header("📄 Relatório Final de Avaliações")
-
+        
+        st.subheader("Recomendação")
         if "df_avaliacoes" in st.session_state:
-            df = st.session_state["df_avaliacoes"]
-            resumo = gerar_resumo(df)
+            st.markdown(f"<p style='color:{cor}; font-size:120%;'>{recomendacao}</p>", unsafe_allow_html=True)
 
-            st.subheader("1. Visão Geral")
-            st.markdown(f"<p style='color:{cor}; font-size:120%;'>- <strong>Total de avaliações analisadas:</strong> {len(df)}</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color:{cor}; font-size:120%;'>- <strong>Formato original do arquivo:</strong> Texto Livre</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color:{cor}; font-size:120%;'>- <strong>Fonte:</strong> Arquivo enviado pelo usuário</p>", unsafe_allow_html=True)
-
-            st.subheader("2. Tópicos Mais Frequentes")
-            coluna = next((c for c in df.columns if c.lower() in ["texto", "comentário", "mensagem"]), None)
-            if coluna:
-                palavras = pd.Series(" ".join(df[coluna].astype(str)).lower().split())
-                top = palavras.value_counts().head(10)
-                st.markdown(f"<p style='color:{cor}; font-size:120%;'>Os termos mais recorrentes nas avaliações foram:</p>", unsafe_allow_html=True)
-                for i, p in enumerate(top.index, 1):
-                    st.markdown(f"<p style='color:{cor}; font-size:120%;'>{i}. {p}</p>", unsafe_allow_html=True)
-            else:
-                mostrar_erro_personalizado(modo_tema, "Nenhuma coluna de texto foi encontrada no arquivo enviado.")
-
-            st.subheader("3. Resumo Inteligente")
-            st.markdown(f"<p style='color:{cor}; font-size:120%;'>{resumo}</p>", unsafe_allow_html=True)
-
-            st.subheader("4. Recomendação Final")
-            st.markdown("---")
-            st.caption(f"<span style='color:{cor}; font-size:120%;'>Este relatório foi gerado automaticamente com base nas avaliações enviadas.</span>", unsafe_allow_html=True)
+        pdf_bytes = gerar_relatorio(empresa, grafico_sent, topicos, resumo, recomendacao)
+        
+        if st.session_state.get("modo_tema") == "claro":
+            button_type = "tertiary"
         else:
-            mostrar_aviso(modo_tema)
-
-        st.markdown("---")
-        st.caption(f"<span style='color:{cor}; font-size:120%;'>Este aplicativo foi desenvolvido com foco em acessibilidade visual, seguindo os princípios do WCAG 2.1.</span>", unsafe_allow_html=True)
+            button_type = "secondary"
+        
+        st.download_button(
+            label="📥 Baixar Relatório em PDF",
+            data=pdf_bytes,
+            file_name=f"relatorio_analise_avaliacoes_{empresa.replace(' ', '_').lower()}.pdf",
+            mime="application/pdf",
+            type=button_type,
+        use_container_width=True
+        )

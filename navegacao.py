@@ -1,5 +1,5 @@
 import streamlit as st
-from estilos.visual import cor_texto_tema
+from visual import cor_texto_tema
 
 def configurar_navegacao():
     modo_tema = st.session_state.get("modo_tema", "claro")
@@ -12,5 +12,4 @@ def configurar_navegacao():
 
     return st.sidebar.radio(
         label="",
-        options=["Início", "Análise de Avaliações", "Relatório Final"]
-    )
+        options=["Início", "Análise de Avaliações"])

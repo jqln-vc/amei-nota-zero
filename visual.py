@@ -129,9 +129,9 @@ def mostrar_erro_personalizado(modo_tema: str, mensagem: str):
 
 def obter_paleta(modo_tema: str) -> dict:
     return {
-        "Elogios": "#009E73",     # Verde petróleo — seguro para daltonismo
-        "Sugestões": "#E69F00",   # Laranja queimado — alto contraste
-        "Críticas": "#D55E00"     # Vermelho escuro — perceptível mesmo com protanopia
+        "positive": "#009E73",     # Verde petróleo — seguro para daltonismo
+        "neutral": "#E69F00",   # Laranja queimado — alto contraste
+        "negative": "#D55E00"     # Vermelho escuro — perceptível mesmo com protanopia
     }
 
 def cor_texto_tema(modo_tema: str) -> str:

@@ -1,4 +1,4 @@
-from componentes.layout import construir_interface
+from layout import construir_interface
 
 
 if __name__ == "__main__":
