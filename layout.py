@@ -3,7 +3,8 @@ import pandas as pd
 import altair as alt
 
 from visual import aplicar_estilos, obter_paleta, cor_texto_tema
-from carregamento import carregar_arquivo, exibir_dados, gerar_relatorio, conectar_banco, salvar_avaliacoes, carregar_avaliacoes 
+from carregamento import carregar_arquivo, exibir_dados, gerar_relatorio
+from user_crud import conectar_banco, salvar_avaliacoes, carregar_avaliacoes 
 from visualizacao import gerar_grafico_barra
 from acessibilidade import configurar_acessibilidade
 from navegacao import configurar_navegacao
@@ -57,8 +58,6 @@ def construir_interface():
         arquivo = st.file_uploader("📁 Envie um arquivo com avaliações", type=["csv", "xlsx", "txt", "json"], label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
         
-        if st.button("📊 Carregar avaliações do banco de dados"):
-                    exibir_dados(carregar_avaliacoes(conn))
 
         if arquivo:
             df_raw = carregar_arquivo(arquivo)
@@ -70,10 +69,14 @@ def construir_interface():
                 st.session_state["recomendacao"] = extracted_info["advice"]
                 st.session_state["empresa"] = df["name"].iloc[0]
                 st.session_state["df_avaliacoes"] = df
-            
-            if st.button("💾 Salvar no banco de dados"):
+
+            if st.button("💾 Salvar no banco de dados",
+                        type="tertiary"):
                 salvar_avaliacoes(df, conn)
-            exibir_dados(df)
+                exibir_dados(carregar_avaliacoes(conn))
+            else:
+                exibir_dados(df)
+            
                 
             
                 
@@ -84,6 +87,7 @@ def construir_interface():
         resumo = st.session_state.get("resumo", "")
         topicos = st.session_state.get("topicos", [])
         recomendacao = st.session_state.get("recomendacao", "")
+
         st.header(f"📊 Análise de Avaliações de {empresa}")
         
         st.subheader("Gráfico de Análise de Sentimento")
@@ -114,17 +118,13 @@ def construir_interface():
             st.markdown(f"<p style='color:{cor}; font-size:120%;'>{recomendacao}</p>", unsafe_allow_html=True)
 
         pdf_bytes = gerar_relatorio(empresa, grafico_sent, topicos, resumo, recomendacao)
-        
-        if st.session_state.get("modo_tema") == "claro":
-            button_type = "tertiary"
-        else:
-            button_type = "secondary"
+
         
         st.download_button(
             label="📥 Baixar Relatório em PDF",
-            data=pdf_bytes,
+            data=bytes(pdf_bytes),
             file_name=f"relatorio_analise_avaliacoes_{empresa.replace(' ', '_').lower()}.pdf",
             mime="application/pdf",
-            type=button_type,
-        use_container_width=True
+            type="tertiary",
+            use_container_width=True
         )
