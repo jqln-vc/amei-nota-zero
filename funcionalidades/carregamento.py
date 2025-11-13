@@ -9,7 +9,7 @@ from fpdf.enums import Align
 import altair as alt
 import vl_convert as vlc
 
-from visual import cor_texto_tema
+from estilos.visual import cor_texto_tema
 
 def mostrar_erro_personalizado(modo_tema: str, mensagem: str):
     cor = cor_texto_tema(modo_tema)

@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-from visual import aplicar_estilos, obter_paleta, cor_texto_tema
-from carregamento import carregar_arquivo, exibir_dados, gerar_relatorio
-from user_crud import conectar_banco, salvar_avaliacoes, carregar_avaliacoes 
-from visualizacao import gerar_grafico_barra
-from acessibilidade import configurar_acessibilidade
-from navegacao import configurar_navegacao
-import nlp
+from estilos.visual import aplicar_estilos, obter_paleta, cor_texto_tema
+from funcionalidades.carregamento import carregar_arquivo, exibir_dados, gerar_relatorio
+from funcionalidades.user_crud import conectar_banco, salvar_avaliacoes, carregar_avaliacoes 
+from funcionalidades.visualizacao import gerar_grafico_barra
+from componentes.acessibilidade import configurar_acessibilidade
+from componentes.navegacao import configurar_navegacao
+import funcionalidades.nlp as nlp
 
 def mostrar_erro_personalizado(modo_tema: str, mensagem: str):
     cor = cor_texto_tema(modo_tema)

@@ -1,5 +1,5 @@
 import streamlit as st
-from visual import cor_texto_tema
+from estilos.visual import cor_texto_tema
 
 def configurar_navegacao():
     modo_tema = st.session_state.get("modo_tema", "claro")
