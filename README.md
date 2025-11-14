@@ -1,6 +1,7 @@
 # AMEI, NOTA ZERO
 
-Aplicativo interativo desenvolvido com Streamlit para análise automatizada de avaliações textuais em negócios online. Ele transforma comentários de clientes em insights acionáveis, facilitando a tomada de decisão para microempreendedores.
+Aplicativo desenvolvido com Streamlit para análise automatizada de avaliações textuais em negócios online. Ele transforma comentários de clientes em insights acionáveis, facilitando a tomada de decisão para microempreendedores.
+Teste [aqui](https://amei-nota-zero.streamlit.app/)!
 
 ## FUNCIONALIDADES
 
