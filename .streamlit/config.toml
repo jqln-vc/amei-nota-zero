@@ -1,0 +1,8 @@
+[theme]
+
+primaryColor = "#FF6F61"
+font = "sans serif"
+
+[client]
+# Esconde o botão de "Deploy" e deixa o cabeçalho invisível 
+toolbarMode = "minimal"
