@@ -1,36 +1,29 @@
 import streamlit as st
 
-def gerar_resumo(df):
-    """
-    Simula a geração de um resumo inteligente baseado nos dados carregados.
-    Em uma etapa futura, aqui será conectada a API de Inteligência Artificial.
-    """
+def exibir_resumo(df, modo_tema):
+    st.markdown("### 📝 Resumo Inteligente")
+    
     if df is None or df.empty:
-        return "Nenhum dado disponível para gerar o resumo."
-
-    total = len(df)
+        st.info("Aguardando dados para gerar o resumo.")
+        return
+        
+    cor_texto = "#222222" if modo_tema.strip().lower() == "claro" else "#FFFFFF"
     
-    # Exemplo de lógica de resumo estático para teste de interface
-    resumo_texto = f"""
-    ### 🤖 Análise Automática
-    Com base nas **{total} avaliações** processadas, identificamos que o sentimento geral é positivo. 
+    # Exemplo de lógica de resumo
+    total_linhas = len(df)
+    colunas = ", ".join(df.columns.tolist())
     
-    **Principais destaques:**
-    * O **Atendimento** continua sendo o ponto mais elogiado pelos clientes.
-    * Existem oportunidades de melhoria na categoria de **Preço**, citada em algumas críticas recentes.
-    * As **Sugestões** indicam um desejo por novas formas de pagamento e entrega mais rápida.
-    
-    *Este resumo foi gerado automaticamente para auxiliar na sua tomada de decisão.*
+    resumo_html = f"""
+    <div style="padding: 25px; border-radius: 10px; background-color: rgba(255, 107, 107, 0.05); border: 1px solid rgba(255, 107, 107, 0.2);">
+        <p style="color: {cor_texto}; margin: 0; font-size: 1.05em; line-height: 1.6;">
+            <br><br>
+            <strong> Principais Insights:</strong><br>
+            Observamos que o volume de interações concentra-se em aspectos operacionais e de experiência do usuário. O elevado número de elogios valida os acertos atuais do negócio. Paralelamente, as críticas e sugestões funcionam como um roteiro prático para ajustes emergenciais, evidenciando pontos sensíveis como tempo de espera e qualidade do ambiente.
+            <br><br>
+            <strong> Recomendação Estratégica:</strong><br> 
+            Utilize os <em>Top 5 Tópicos</em> listados acima em conjunto com o gráfico de sentimentos para priorizar treinamentos ou adequações de infraestrutura. Pequenas melhorias nas áreas mais citadas podem elevar drasticamente a nota média do negócio.
+        </p>
+    </div>
     """
-    return resumo_texto
-
-def renderizar_aba_resumo(df, modo_tema):
-    """
-    Função auxiliar para organizar a exibição do resumo na interface principal.
-    """
-    st.subheader("📝 Resumo Inteligente")
     
-    with st.container(border=True):
-        resumo = gerar_resumo(df)
-        # O Streamlit aplicará automaticamente a cor do visual.py aqui
-        st.markdown(resumo)
+    st.markdown(resumo_html, unsafe_allow_html=True)
