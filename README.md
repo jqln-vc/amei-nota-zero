@@ -36,6 +36,15 @@ amei-nota-zero/
 │   ├── nlp.py
 │   ├── user_crud.py
 │   └── visualizacao.py
+├── teste_unitario/
+│   ├── __init__.py
+│   ├── test_carregamento.py
+│   ├── test_navegacao.py
+│   ├── test_nlp.py
+│   ├── test_resumo.py
+│   ├── test_user_crud.py
+│   ├── test_visual.py
+│   ├── test_visualizacao.py
 
 ## INSTALAÇÃO
 
