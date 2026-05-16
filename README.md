@@ -14,10 +14,9 @@ Aplicativo interativo desenvolvido com Streamlit para análise automatizada de a
 ## MODELO CONCEITUAL
 
 ```mermaid
-@@ -15,4 +26,71 @@ flowchart TD
+flowchart TD
     Home --> Upload
-    Upload --> Sent & Topics & Insight --> Viz
-    Viz --> Exp
+    Upload --> Sentimentos & Tópicos & Insights --> Exportar
 ```
 ```
 
