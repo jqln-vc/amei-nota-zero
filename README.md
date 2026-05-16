@@ -88,8 +88,7 @@ Todas as dependências estão listadas no `requirements.txt`.
 ## AUTORIA
 
 Projeto Integrador — Univesp
-Grupo DRP01-PJI240-SALA005GRUPO-006
-Desenvolvido por Aline Maria dos Santos, Jaqueline Costa e equipe.
+Desenvolvido pelos colaboradores.
 
 ## LICENÇA
 
