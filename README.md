@@ -2,6 +2,8 @@
 
 Aplicativo interativo desenvolvido com Streamlit para análise automatizada de avaliações textuais em negócios online. Ele transforma comentários de clientes em insights acionáveis, facilitando a tomada de decisão para microempreendedores.
 
+Experimente [aqui](https://amei-nota-zero.streamlit.app/)!
+
 ## FUNCIONALIDADES
 
 - Upload de arquivos (CSV, Excel, TXT, JSON)
